@@ -1,0 +1,4 @@
+name: "FixDoublePlantCrashInventory"
+version: "${project.version}"
+author: sasrai
+main: jp.sasrai.fixdpcrash.FixDoublePlantCrashInventory
