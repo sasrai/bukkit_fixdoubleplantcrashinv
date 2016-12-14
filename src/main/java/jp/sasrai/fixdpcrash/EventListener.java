@@ -47,16 +47,19 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!plugin.isCheckLoginPlayerInventory) return;
         fixDoublePlantPlayerInventory(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerItemPickup(InventoryClickEvent event) {
+        if (!plugin.isCheckPickup) return;
         fixDoublePlant(event.getCursor());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChunkLoad(ChunkLoadEvent event) {
+        if (!plugin.isCheckChunkLoad) return;
         boolean fixed = false;
         for (int y = 0; y < 255; y++) {
             for (int x = 0; x < 16; x++) {
@@ -87,6 +90,7 @@ public class EventListener implements Listener {
     // MetaCycler等でメタデータを書き換えた時用チェック
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!plugin.isCheckBlockClicked) return;
         if ((event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK)
                 && event.getClickedBlock().getType() == Material.DOUBLE_PLANT) {
             Block target = event.getClickedBlock();

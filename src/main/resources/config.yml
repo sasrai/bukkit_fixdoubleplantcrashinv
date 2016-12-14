@@ -1,0 +1,12 @@
+# Do not edit doubleplant.
+doubleplant:
+  material: DOUBLE_PLANT
+  maxmeta: 5
+  topmeta: 8
+
+# enable check event.
+settings:
+  pickupCheck: true
+  loginInventoryCheck: true
+  chunkCheck: true
+  blockClickCheck: true
