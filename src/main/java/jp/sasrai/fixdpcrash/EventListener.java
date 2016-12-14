@@ -95,7 +95,7 @@ public class EventListener implements Listener {
                 && event.getClickedBlock().getType() == Material.DOUBLE_PLANT) {
             Block target = event.getClickedBlock();
             Block blockBelow = target.getRelative(0, -1, 0);
-            if (blockBelow.getType() == Material.DOUBLE_PLANT && blockBelow.getData() != 8) {
+            if (blockBelow.getType() == Material.DOUBLE_PLANT && blockBelow.getData() != plugin.topDPBlockMetadata) {
                 event.getPlayer().sendMessage("fix double plant!");
                 target.setData((byte) plugin.topDPBlockMetadata);
                 if (blockBelow.getData() > plugin.maxDPMetadata) blockBelow.setData(plugin.maxDPMetadata);
