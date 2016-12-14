@@ -37,7 +37,7 @@ public class EventListener implements Listener {
         }
     }
     private ItemStack fixDoublePlant(ItemStack item) {
-        if (item != null && item.getType() == Material.DOUBLE_PLANT && item.getDurability() > plugin.maxDPMetadata) {
+        if (item != null && item.getType() == plugin.doubleplantMaterial && item.getDurability() > plugin.maxDPMetadata) {
             item.setDurability((short) 0);
             plugin.getLogger().info("fixed double plant");
             return item;
@@ -65,10 +65,10 @@ public class EventListener implements Listener {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     Block block = event.getChunk().getBlock(x, y, z);
-                    if (block.getType() == Material.DOUBLE_PLANT) {
+                    if (block.getType() == plugin.doubleplantMaterial) {
                         byte data = block.getData();
                         if (data > plugin.maxDPMetadata && data != plugin.topDPBlockMetadata) {
-                            if (block.getRelative(0, -1, 0).getType() == Material.DOUBLE_PLANT) {
+                            if (block.getRelative(0, -1, 0).getType() == plugin.doubleplantMaterial) {
                                 block.setData(plugin.topDPBlockMetadata);
                             } else {
                                 block.setData(plugin.maxDPMetadata);
@@ -92,10 +92,10 @@ public class EventListener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!plugin.isCheckBlockClicked) return;
         if ((event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK)
-                && event.getClickedBlock().getType() == Material.DOUBLE_PLANT) {
+                && event.getClickedBlock().getType() == plugin.doubleplantMaterial) {
             Block target = event.getClickedBlock();
             Block blockBelow = target.getRelative(0, -1, 0);
-            if (blockBelow.getType() == Material.DOUBLE_PLANT && blockBelow.getData() != plugin.topDPBlockMetadata) {
+            if (blockBelow.getType() == plugin.doubleplantMaterial && blockBelow.getData() != plugin.topDPBlockMetadata) {
                 event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
                 target.setData((byte) plugin.topDPBlockMetadata);
                 if (blockBelow.getData() > plugin.maxDPMetadata) blockBelow.setData(plugin.maxDPMetadata);
