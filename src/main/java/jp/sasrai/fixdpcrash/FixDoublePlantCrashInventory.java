@@ -6,6 +6,9 @@ package jp.sasrai.fixdpcrash;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class FixDoublePlantCrashInventory extends JavaPlugin {
+  public final byte maxDPMetadata = 5;
+  public final byte topDPBlockMetadata = 8;
+
   @Override
   public void onEnable() {
     super.onEnable();
