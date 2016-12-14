@@ -32,7 +32,7 @@ public class EventListener implements Listener {
     private void fixDoublePlantPlayerInventory(Player player) {
         for (ItemStack item: player.getInventory().getContents()) {
             if (null != fixDoublePlant(item)) {
-                player.sendMessage("[WARN] fixed DoublePlant.");
+                player.sendMessage("[WARN] fixed inventory DoublePlant.");
             }
         }
     }
@@ -96,11 +96,11 @@ public class EventListener implements Listener {
             Block target = event.getClickedBlock();
             Block blockBelow = target.getRelative(0, -1, 0);
             if (blockBelow.getType() == Material.DOUBLE_PLANT && blockBelow.getData() != plugin.topDPBlockMetadata) {
-                event.getPlayer().sendMessage("fix double plant!");
+                event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
                 target.setData((byte) plugin.topDPBlockMetadata);
                 if (blockBelow.getData() > plugin.maxDPMetadata) blockBelow.setData(plugin.maxDPMetadata);
             } else if (target.getData() > plugin.maxDPMetadata) {
-                event.getPlayer().sendMessage("fix double plant!");
+                event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
                 target.setData(plugin.maxDPMetadata);
             }
         }
