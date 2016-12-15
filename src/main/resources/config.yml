@@ -4,9 +4,17 @@ doubleplant:
   maxmeta: 5
   topmeta: 8
 
-# enable check event.
+# event settings.
 settings:
-  pickupCheck: true
-  loginInventoryCheck: true
-  chunkCheck: true
-  blockClickCheck: true
+  pickup:
+    enabled: true
+  loginInventory:
+    enabled: true
+  chunk:
+    enabled: true
+  blockClick:
+    enabled: true
+    isSilent: false
+    tools:
+      - STICK
+      - BONE:0

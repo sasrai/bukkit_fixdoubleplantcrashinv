@@ -5,9 +5,12 @@ package jp.sasrai.fixdpcrash;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class FixDoublePlantCrashInventory extends JavaPlugin {
@@ -15,10 +18,13 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
   private static final String ConfigKeyMaxDPMetadata       = "doubleplant.maxmeta";
   private static final String ConfigKeyTopDPBlockMetadata  = "doubleplant.topmeta";
 
-  private static final String ConfigKeyCheckSettingPickup               = "settings.pickupCheck";
-  private static final String ConfigKeyCheckSettingLoginPlayerInventory = "settings.loginInventoryCheck";
-  private static final String ConfigKeyCheckSettingChunkLoad            = "settings.chunkCheck";
-  private static final String ConfigKeyCheckSettingBlockClicked         = "settings.blockClickCheck";
+  private static final String ConfigKeyCheckSettingPickup               = "settings.pickup.enabled";
+  private static final String ConfigKeyCheckSettingLoginPlayerInventory = "settings.loginInventory.enabled";
+  private static final String ConfigKeyCheckSettingChunkLoad            = "settings.chunk.enabled";
+  private static final String ConfigKeyCheckSettingBlockClicked         = "settings.blockClick.enabled";
+
+  private static final String ConfigKeyBlockClickTools                  = "settings.blockClick.tools";
+  private static final String ConfigKeyBlockClickMessageSilent          = "settings.blockClick.isSilent";
 
   private static final Material DefaultDoublePlantMaterial = Material.DOUBLE_PLANT;
   private static final byte DefaultMaxDPMetadata = 5;
@@ -32,6 +38,10 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
   public boolean isCheckLoginPlayerInventory = true;
   public boolean isCheckChunkLoad = true;
   public boolean isCheckBlockClicked = true;
+
+  public boolean isBlockClickedFixMessageSilent = false;
+
+  public final Map<Material, List<Short>> clickTools = new HashMap<>();
 
   private void loadConfig() {
     getLogger().info("load config...");
@@ -51,10 +61,49 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
       topDPBlockMetadata = DefaultTopDPBlockMetadata; // Default
     }
 
-    isCheckPickup               = getConfig().getBoolean(ConfigKeyCheckSettingPickup, true);
+    isCheckPickup = getConfig().getBoolean(ConfigKeyCheckSettingPickup, true);
     isCheckLoginPlayerInventory = getConfig().getBoolean(ConfigKeyCheckSettingLoginPlayerInventory, true);
-    isCheckChunkLoad            = getConfig().getBoolean(ConfigKeyCheckSettingChunkLoad, true);
-    isCheckBlockClicked         = getConfig().getBoolean(ConfigKeyCheckSettingBlockClicked, true);
+    isCheckChunkLoad = getConfig().getBoolean(ConfigKeyCheckSettingChunkLoad, true);
+    isCheckBlockClicked = getConfig().getBoolean(ConfigKeyCheckSettingBlockClicked, true);
+
+    isBlockClickedFixMessageSilent = getConfig().getBoolean(ConfigKeyBlockClickMessageSilent, false);
+
+    for (String toolName : getConfig().getStringList(ConfigKeyBlockClickTools)) {
+      String[] parsedName = toolName.split(" *: *", 0);
+
+      Material toolType = Material.matchMaterial(parsedName[0].toUpperCase());
+      if (toolType == null) {
+        getLogger().log(Level.WARNING, ChatColor.RED + "%s : Unknown material name!!", parsedName[0]);
+        continue;
+      }
+
+      Short durability = null;
+      try {
+        if (parsedName.length > 1) durability = Short.parseShort(parsedName[1]);
+      } catch (NumberFormatException e) {
+        durability = null;
+      }
+
+      if (clickTools.containsKey(toolType)) {
+        if (clickTools.get(toolType) != null) {
+          if (durability != null) clickTools.get(toolType).add(durability);
+          else clickTools.put(toolType, null);
+        }
+      } else {
+        List<Short> newList = null;
+        if (durability != null) {
+          newList = new ArrayList<>();
+          newList.add(durability);
+        }
+        clickTools.put(toolType, newList);
+      }
+    }
+    if (isCheckBlockClicked) {
+      for (Map.Entry<Material, List<Short>> tool : clickTools.entrySet()) {
+        getLogger().info("ClickedTool :: " + tool.getKey().name()
+                + ( (tool.getValue() == null) ? "" : (":" + tool.getValue().toString()) ));
+      }
+    }
   }
 
   @Override

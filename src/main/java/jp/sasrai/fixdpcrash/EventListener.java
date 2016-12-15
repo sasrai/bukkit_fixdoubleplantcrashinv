@@ -13,6 +13,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by sasrai on 2016/12/13.
  */
@@ -60,19 +63,24 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChunkLoad(ChunkLoadEvent event) {
         if (!plugin.isCheckChunkLoad) return;
+
         boolean fixed = false;
+
         for (int y = 0; y < 255; y++) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     Block block = event.getChunk().getBlock(x, y, z);
+
                     if (block.getType() == plugin.doubleplantMaterial) {
                         byte data = block.getData();
+
                         if (data > plugin.maxDPMetadata && data != plugin.topDPBlockMetadata) {
                             if (block.getRelative(0, -1, 0).getType() == plugin.doubleplantMaterial) {
                                 block.setData(plugin.topDPBlockMetadata);
                             } else {
                                 block.setData(plugin.maxDPMetadata);
                             }
+
                             fixed = true;
 
                             plugin.getLogger().warning("[" + x + ","  + y + ","  + z + "] fixed double plant block.");
@@ -87,20 +95,36 @@ public class EventListener implements Listener {
         }
     }
 
+    private boolean clickedToolCheck(ItemStack useTool) {
+        if (plugin.clickTools == null || plugin.clickTools.size() < 1) return true;
+
+        for (Map.Entry<Material, List<Short>> tool : plugin.clickTools.entrySet()) {
+            if (tool.getKey() == useTool.getType()) {
+                if (tool.getValue() == null) return true;
+                if (tool.getValue().contains(useTool.getDurability())) return true;
+            }
+        }
+        return false;
+    }
     // MetaCycler等でメタデータを書き換えた時用チェック
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!plugin.isCheckBlockClicked) return;
+
         if ((event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && clickedToolCheck(event.getItem())
                 && event.getClickedBlock().getType() == plugin.doubleplantMaterial) {
+
             Block target = event.getClickedBlock();
             Block blockBelow = target.getRelative(0, -1, 0);
+
             if (blockBelow.getType() == plugin.doubleplantMaterial && blockBelow.getData() != plugin.topDPBlockMetadata) {
-                event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+                if (plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
                 target.setData((byte) plugin.topDPBlockMetadata);
                 if (blockBelow.getData() > plugin.maxDPMetadata) blockBelow.setData(plugin.maxDPMetadata);
+
             } else if (target.getData() > plugin.maxDPMetadata) {
-                event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+                if (plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
                 target.setData(plugin.maxDPMetadata);
             }
         }
