@@ -68,7 +68,7 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
 
     isBlockClickedFixMessageSilent = getConfig().getBoolean(ConfigKeyBlockClickMessageSilent, false);
 
-    for (String toolName : getConfig().getStringList(ConfigKeyBlockClickTools)) {
+    for (String toolName : (List<String>) getConfig().getList(ConfigKeyBlockClickTools, new ArrayList<String>())) {
       String[] parsedName = toolName.split(" *: *", 0);
 
       Material toolType = Material.matchMaterial(parsedName[0].toUpperCase());
