@@ -5,7 +5,7 @@
   <artifactId>SBP_FixDoublePlantCrashInventory</artifactId>
   <name>FixDoublePlantCrashInv</name>
 
-  <version>0.0.3</version>
+  <version>0.0.4</version>
 
   <properties>
     <timestamp>${maven.build.timestamp}</timestamp>
