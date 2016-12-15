@@ -119,12 +119,12 @@ public class EventListener implements Listener {
             Block blockBelow = target.getRelative(0, -1, 0);
 
             if (blockBelow.getType() == plugin.doubleplantMaterial && blockBelow.getData() != plugin.topDPBlockMetadata) {
-                if (plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+                if (!plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
                 target.setData((byte) plugin.topDPBlockMetadata);
                 if (blockBelow.getData() > plugin.maxDPMetadata) blockBelow.setData(plugin.maxDPMetadata);
 
             } else if (target.getData() > plugin.maxDPMetadata) {
-                if (plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+                if (!plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
                 target.setData(plugin.maxDPMetadata);
             }
         }
