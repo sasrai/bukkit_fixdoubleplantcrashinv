@@ -17,4 +17,4 @@ settings:
     isSilent: false
     tools:
       - STICK
-      - BONE:0
+      - GLASS_BOTTLE
