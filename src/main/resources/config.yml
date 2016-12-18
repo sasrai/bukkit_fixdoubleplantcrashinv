@@ -15,6 +15,7 @@ settings:
   blockClick:
     enabled: true
     isSilent: false
+    airClick: true # MetaCycler enabled.
     tools:
       - STICK
       - GLASS_BOTTLE

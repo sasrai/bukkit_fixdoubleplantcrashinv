@@ -74,6 +74,7 @@ public class EventListener implements Listener {
                     if (block.getType() == plugin.doubleplantMaterial) {
                         byte data = block.getData();
 
+                        plugin.getLogger().info("dp fix? " + block.toString());
                         if (data > plugin.maxDPMetadata && data != plugin.topDPBlockMetadata) {
                             if (block.getRelative(0, -1, 0).getType() == plugin.doubleplantMaterial) {
                                 block.setData(plugin.topDPBlockMetadata);
@@ -95,37 +96,60 @@ public class EventListener implements Listener {
         }
     }
 
-    private boolean clickedToolCheck(ItemStack useTool) {
+    private boolean clickedToolCheck(ItemStack _useTool) {
+        ItemStack useTool = (_useTool == null) ? new ItemStack(Material.AIR) : _useTool;
         if (plugin.clickTools == null || plugin.clickTools.size() < 1) return true;
 
         for (Map.Entry<Material, List<Short>> tool : plugin.clickTools.entrySet()) {
-            if (tool.getKey() == useTool.getType()) {
+            if (tool.getKey() == ((useTool == null) ? Material.AIR : useTool.getType())) {
                 if (tool.getValue() == null) return true;
                 if (tool.getValue().contains(useTool.getDurability())) return true;
             }
         }
         return false;
     }
+    private void rewriteBlockMeta(Block block, byte metadata) {
+        block.getChunk();
+
+    }
     // MetaCycler等でメタデータを書き換えた時用チェック
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!plugin.isCheckBlockClicked) return;
 
-        if ((event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK)
-                && clickedToolCheck(event.getItem())
-                && event.getClickedBlock().getType() == plugin.doubleplantMaterial) {
+        Block target = null;
 
-            Block target = event.getClickedBlock();
+        // 空中クリック判定(距離1000までの視線上にあるブロックを取得)
+        if (plugin.isBlockClickedFixAirClickCheck && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_AIR)) {
+            target = event.getPlayer().getTargetBlock(null, 1000); // 1.7.10 Deprecated.
+
+        // ブロッククリック判定
+        } else if (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK){
+            target = event.getClickedBlock();
+        }
+
+        if (target != null && clickedToolCheck(event.getItem())
+                && target.getType() == plugin.doubleplantMaterial) {
+
             Block blockBelow = target.getRelative(0, -1, 0);
+            Block topBlock = target.getRelative(0, 1, 0);
 
-            if (blockBelow.getType() == plugin.doubleplantMaterial && blockBelow.getData() != plugin.topDPBlockMetadata) {
-                if (!plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
-                target.setData((byte) plugin.topDPBlockMetadata);
+            if (blockBelow.getType() == plugin.doubleplantMaterial) {
+                if (target.getData() != plugin.topDPBlockMetadata) {
+                    plugin.getLogger().warning(event.getPlayer().getName() + " : fixed DoublePlant block " + target.getLocation().toString());
+                    if (!plugin.isBlockClickedFixMessageSilent)
+                        event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+                    target.setData((byte) plugin.topDPBlockMetadata);
+                }
                 if (blockBelow.getData() > plugin.maxDPMetadata) blockBelow.setData(plugin.maxDPMetadata);
 
-            } else if (target.getData() > plugin.maxDPMetadata) {
-                if (!plugin.isBlockClickedFixMessageSilent) event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
-                target.setData(plugin.maxDPMetadata);
+            } else if (topBlock.getType() == plugin.doubleplantMaterial) {
+                if (target.getData() > plugin.maxDPMetadata) {
+                    plugin.getLogger().warning(event.getPlayer().getName() + " : fixed DoublePlant block.");
+                    if (!plugin.isBlockClickedFixMessageSilent)
+                        event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+                    target.setData((target.getData() == plugin.maxDPMetadata + 1) ? (byte) 0 : plugin.maxDPMetadata);
+                }
             }
         }
     }

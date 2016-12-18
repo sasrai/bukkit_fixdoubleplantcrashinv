@@ -25,6 +25,7 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
 
   private static final String ConfigKeyBlockClickTools                  = "settings.blockClick.tools";
   private static final String ConfigKeyBlockClickMessageSilent          = "settings.blockClick.isSilent";
+  private static final String ConfigKeyBlockClickAirClickCheck          = "settings.blockClick.airClick";
 
   private static final Material DefaultDoublePlantMaterial = Material.DOUBLE_PLANT;
   private static final byte DefaultMaxDPMetadata = 5;
@@ -40,6 +41,7 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
   public boolean isCheckBlockClicked = true;
 
   public boolean isBlockClickedFixMessageSilent = false;
+  public boolean isBlockClickedFixAirClickCheck = true;
 
   public final Map<Material, List<Short>> clickTools = new HashMap<>();
 
@@ -62,11 +64,16 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
     }
 
     isCheckPickup = getConfig().getBoolean(ConfigKeyCheckSettingPickup, true);
+    getLogger().info("Pickup check :: " + isCheckPickup);
     isCheckLoginPlayerInventory = getConfig().getBoolean(ConfigKeyCheckSettingLoginPlayerInventory, true);
+    getLogger().info("Login player inventory check :: " + isCheckLoginPlayerInventory);
     isCheckChunkLoad = getConfig().getBoolean(ConfigKeyCheckSettingChunkLoad, true);
+    getLogger().info("Chunk load check :: " + isCheckChunkLoad);
     isCheckBlockClicked = getConfig().getBoolean(ConfigKeyCheckSettingBlockClicked, true);
+    getLogger().info("Block clicked check :: " + isCheckBlockClicked);
 
     isBlockClickedFixMessageSilent = getConfig().getBoolean(ConfigKeyBlockClickMessageSilent, false);
+    isBlockClickedFixAirClickCheck = getConfig().getBoolean(ConfigKeyBlockClickAirClickCheck, true);
 
     for (String toolName : (List<String>) getConfig().getList(ConfigKeyBlockClickTools, new ArrayList<String>())) {
       String[] parsedName = toolName.split(" *: *", 0);
