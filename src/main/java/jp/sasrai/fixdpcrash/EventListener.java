@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -194,6 +195,22 @@ public class EventListener implements Listener {
                 plugin.getLogger().warning(event.getPlayer().getName() + " : fixed DoublePlant block " + target.getLocation().toString());
                 if (!plugin.isBlockClickedFixMessageSilent)
                     event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerItemHeld(PlayerItemHeldEvent event) {
+        if (event.getPlayer().isSneaking()) {
+            Block target = event.getPlayer().getTargetBlock(null, 1000); // 1.7.10 Deprecated.
+
+            if (target != null && clickedToolCheck(event.getPlayer().getItemInHand())
+                    && target.getType() == plugin.doubleplantMaterial) {
+                if (fixBlock(target)) {
+                    plugin.getLogger().warning(event.getPlayer().getName() + " : fixed DoublePlant block " + target.getLocation().toString());
+                    if (!plugin.isBlockClickedFixMessageSilent)
+                        event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
+                }
             }
         }
     }
