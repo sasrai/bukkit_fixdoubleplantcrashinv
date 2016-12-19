@@ -38,7 +38,6 @@ public class EventListener implements Listener {
 
     private void fixDoublePlantPlayerInventory(Player player) {
         for (ItemStack item: player.getInventory().getContents()) {
-            if (item != null) plugin.getLogger().info("[INV] " + item.getType().name() + " :: " + item.getDurability());
             if (null != fixDoublePlant(item)) {
                 player.sendMessage("[WARN] fixed inventory DoublePlant.");
             }
