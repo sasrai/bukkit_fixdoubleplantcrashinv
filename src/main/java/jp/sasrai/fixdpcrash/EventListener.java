@@ -200,6 +200,8 @@ public class EventListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerItemHeld(PlayerItemHeldEvent event) {
+        if (!plugin.isCheckBlockClicked) return;
+
         if (event.getPlayer().isSneaking()) {
             Block target = event.getPlayer().getTargetBlock(null, 1000); // 1.7.10 Deprecated.
 
