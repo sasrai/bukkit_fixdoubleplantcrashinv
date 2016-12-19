@@ -10,7 +10,9 @@ settings:
     enabled: true
   loginInventory:
     enabled: true
-  chunk:
+  loginAreaChunk: # Player login only.
+    enable: true
+  chunk:       # All ChunkLoad event
     enabled: true
   blockClick:
     enabled: true

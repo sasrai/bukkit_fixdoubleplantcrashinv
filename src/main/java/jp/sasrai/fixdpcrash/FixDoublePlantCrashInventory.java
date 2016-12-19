@@ -20,6 +20,7 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
 
   private static final String ConfigKeyCheckSettingPickup               = "settings.pickup.enabled";
   private static final String ConfigKeyCheckSettingLoginPlayerInventory = "settings.loginInventory.enabled";
+  private static final String ConfigKeyCheckSettingLoginAreaChunk       = "settings.loginAreaChunk.enabled";
   private static final String ConfigKeyCheckSettingChunkLoad            = "settings.chunk.enabled";
   private static final String ConfigKeyCheckSettingBlockClicked         = "settings.blockClick.enabled";
 
@@ -37,6 +38,7 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
 
   public boolean isCheckPickup = true;
   public boolean isCheckLoginPlayerInventory = true;
+  public boolean isCheckLoginAreaChunk = true;
   public boolean isCheckChunkLoad = true;
   public boolean isCheckBlockClicked = true;
 
@@ -47,17 +49,17 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
 
   private void loadConfig() {
     getLogger().info("load config...");
-    doubleplantMaterial = Material.matchMaterial(getConfig().getString("doubleplant.material", DefaultDoublePlantMaterial.name()).toUpperCase());
+    doubleplantMaterial = Material.matchMaterial(getConfig().getString(ConfigKeyDoublePlantMaterial, DefaultDoublePlantMaterial.name()).toUpperCase());
     if (null == doubleplantMaterial) {
-      getLogger().log(Level.WARNING, ChatColor.RED + "%s : Unknown material name!!", getConfig().getString("doubleplant.material"));
+      getLogger().log(Level.WARNING, ChatColor.RED + "%s : Unknown material name!!", getConfig().getString(ConfigKeyDoublePlantMaterial));
       doubleplantMaterial = DefaultDoublePlantMaterial; // Default
     }
-    maxDPMetadata = (byte) getConfig().getInt("doubleplant.maxmeta", DefaultMaxDPMetadata);
+    maxDPMetadata = (byte) getConfig().getInt(ConfigKeyMaxDPMetadata, DefaultMaxDPMetadata);
     if (maxDPMetadata > 15) {
       getLogger().log(Level.WARNING, ChatColor.RED + "%d : MaxMeta value is out of range!!", maxDPMetadata);
       maxDPMetadata = DefaultMaxDPMetadata; // Default
     }
-    topDPBlockMetadata = (byte) getConfig().getInt("doubleplant.topmeta", DefaultTopDPBlockMetadata);
+    topDPBlockMetadata = (byte) getConfig().getInt(ConfigKeyTopDPBlockMetadata, DefaultTopDPBlockMetadata);
     if (topDPBlockMetadata > 15) {
       getLogger().log(Level.WARNING, ChatColor.RED + "%d : TopBlockMeta value is out of range!!", topDPBlockMetadata);
       topDPBlockMetadata = DefaultTopDPBlockMetadata; // Default
@@ -67,6 +69,8 @@ public class FixDoublePlantCrashInventory extends JavaPlugin {
     getLogger().info("Pickup check :: " + isCheckPickup);
     isCheckLoginPlayerInventory = getConfig().getBoolean(ConfigKeyCheckSettingLoginPlayerInventory, true);
     getLogger().info("Login player inventory check :: " + isCheckLoginPlayerInventory);
+    isCheckLoginAreaChunk = getConfig().getBoolean(ConfigKeyCheckSettingLoginAreaChunk, true);
+    getLogger().info("Chunk load check :: " + isCheckLoginAreaChunk);
     isCheckChunkLoad = getConfig().getBoolean(ConfigKeyCheckSettingChunkLoad, true);
     getLogger().info("Chunk load check :: " + isCheckChunkLoad);
     isCheckBlockClicked = getConfig().getBoolean(ConfigKeyCheckSettingBlockClicked, true);

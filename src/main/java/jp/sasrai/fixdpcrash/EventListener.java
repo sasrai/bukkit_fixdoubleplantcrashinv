@@ -143,7 +143,7 @@ public class EventListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!plugin.isCheckLoginPlayerInventory) return;
         fixDoublePlantPlayerInventory(event.getPlayer());
-        if (plugin.isCheckChunkLoad) {
+        if (plugin.isCheckLoginAreaChunk) {
             loadAndChunkCheck(event.getPlayer().getLocation());
         }
     }
