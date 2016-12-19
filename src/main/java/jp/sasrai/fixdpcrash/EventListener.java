@@ -1,6 +1,9 @@
 package jp.sasrai.fixdpcrash;
 
+import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -34,6 +37,7 @@ public class EventListener implements Listener {
 
     private void fixDoublePlantPlayerInventory(Player player) {
         for (ItemStack item: player.getInventory().getContents()) {
+            if (item != null) plugin.getLogger().info("[INV] " + item.getType().name() + " :: " + item.getDurability());
             if (null != fixDoublePlant(item)) {
                 player.sendMessage("[WARN] fixed inventory DoublePlant.");
             }
@@ -48,10 +52,100 @@ public class EventListener implements Listener {
         return null;
     }
 
+    private void loadAndChunkCheck(Location location) {
+        Chunk centerChunk = location.getChunk();
+        World world = centerChunk.getWorld();
+        int centerChunkX = centerChunk.getX();
+        int centerChunkZ = centerChunk.getZ();
+
+        boolean fixed;
+
+        centerChunk.load(false);
+        fixed = fixChunk(centerChunk, false);
+        for (int i = 1; i < plugin.getServer().getViewDistance(); i++) {
+            for (int j = 0; j < i * 2; j++) {
+                int offset = i - 1;
+                Chunk checkChunk;
+
+                checkChunk = world.getChunkAt(centerChunkX - i, centerChunkZ + (j - offset));
+                checkChunk.load(false);
+                if (fixChunk(checkChunk, false)) fixed = true;
+
+                checkChunk = world.getChunkAt(centerChunkX + i, centerChunkZ + (-j + offset));
+                checkChunk.load(false);
+                if (fixChunk(checkChunk, false)) fixed = true;
+
+                checkChunk = world.getChunkAt(centerChunkX + (-j + offset), centerChunkZ - i);
+                checkChunk.load(false);
+                if (fixChunk(checkChunk, false)) fixed = true;
+
+                checkChunk = world.getChunkAt(centerChunkX + (j - offset), centerChunkZ + i);
+                checkChunk.load(false);
+                if (fixChunk(checkChunk, false)) fixed = true;
+            }
+        }
+
+        if (fixed) centerChunk.getWorld().save();
+    }
+
+    private boolean fixChunkWithSave(Chunk chunk) {
+        return fixChunk(chunk, true);
+    }
+    private boolean fixChunk(Chunk chunk, boolean save) {
+        boolean fixed = false;
+        if (!chunk.isLoaded()) return false;
+
+        for (int y = 0; y < 255; y += 2) {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    Block block = chunk.getBlock(x, y, z);
+                    if (block.getType() == plugin.doubleplantMaterial && fixBlock(block)) {
+                        plugin.getLogger().warning("[" + block.getX() + ","  + y + ","  + block.getZ() + "] fixed double plant block.");
+                        fixed = true;
+                    }
+                }
+            }
+        }
+
+        if (save && fixed) {
+            chunk.getWorld().save();
+        }
+
+        return fixed;
+    }
+    private boolean fixBlock(Block block) {
+        boolean result = false;
+
+        Block blockBelow = block.getRelative(0, -1, 0);
+        Block topBlock = block.getRelative(0, 1, 0);
+
+        if (blockBelow.getType() == plugin.doubleplantMaterial) {
+            if (block.getData() != plugin.topDPBlockMetadata) {
+                block.setData((byte) plugin.topDPBlockMetadata);
+                result = true;
+            }
+            if (blockBelow.getData() > plugin.maxDPMetadata) {
+                blockBelow.setData(plugin.maxDPMetadata);
+                result = true;
+            }
+
+        } else if (topBlock.getType() == plugin.doubleplantMaterial) {
+            if (block.getData() > plugin.maxDPMetadata) {
+                block.setData((block.getData() == plugin.maxDPMetadata + 1) ? (byte) 0 : plugin.maxDPMetadata);
+                result = true;
+            }
+        }
+
+        return result;
+    }
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!plugin.isCheckLoginPlayerInventory) return;
         fixDoublePlantPlayerInventory(event.getPlayer());
+        if (plugin.isCheckChunkLoad) {
+            loadAndChunkCheck(event.getPlayer().getLocation());
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -60,40 +154,10 @@ public class EventListener implements Listener {
         fixDoublePlant(event.getCursor());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onChunkLoad(ChunkLoadEvent event) {
         if (!plugin.isCheckChunkLoad) return;
-
-        boolean fixed = false;
-
-        for (int y = 0; y < 255; y++) {
-            for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
-                    Block block = event.getChunk().getBlock(x, y, z);
-
-                    if (block.getType() == plugin.doubleplantMaterial) {
-                        byte data = block.getData();
-
-                        plugin.getLogger().info("dp fix? " + block.toString());
-                        if (data > plugin.maxDPMetadata && data != plugin.topDPBlockMetadata) {
-                            if (block.getRelative(0, -1, 0).getType() == plugin.doubleplantMaterial) {
-                                block.setData(plugin.topDPBlockMetadata);
-                            } else {
-                                block.setData(plugin.maxDPMetadata);
-                            }
-
-                            fixed = true;
-
-                            plugin.getLogger().warning("[" + x + ","  + y + ","  + z + "] fixed double plant block.");
-                        }
-                    }
-                }
-            }
-        }
-
-        if (fixed) {
-            event.getWorld().save();
-        }
+        fixChunkWithSave(event.getChunk());
     }
 
     private boolean clickedToolCheck(ItemStack _useTool) {
@@ -107,10 +171,6 @@ public class EventListener implements Listener {
             }
         }
         return false;
-    }
-    private void rewriteBlockMeta(Block block, byte metadata) {
-        block.getChunk();
-
     }
     // MetaCycler等でメタデータを書き換えた時用チェック
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -130,26 +190,10 @@ public class EventListener implements Listener {
 
         if (target != null && clickedToolCheck(event.getItem())
                 && target.getType() == plugin.doubleplantMaterial) {
-
-            Block blockBelow = target.getRelative(0, -1, 0);
-            Block topBlock = target.getRelative(0, 1, 0);
-
-            if (blockBelow.getType() == plugin.doubleplantMaterial) {
-                if (target.getData() != plugin.topDPBlockMetadata) {
-                    plugin.getLogger().warning(event.getPlayer().getName() + " : fixed DoublePlant block " + target.getLocation().toString());
-                    if (!plugin.isBlockClickedFixMessageSilent)
-                        event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
-                    target.setData((byte) plugin.topDPBlockMetadata);
-                }
-                if (blockBelow.getData() > plugin.maxDPMetadata) blockBelow.setData(plugin.maxDPMetadata);
-
-            } else if (topBlock.getType() == plugin.doubleplantMaterial) {
-                if (target.getData() > plugin.maxDPMetadata) {
-                    plugin.getLogger().warning(event.getPlayer().getName() + " : fixed DoublePlant block.");
-                    if (!plugin.isBlockClickedFixMessageSilent)
-                        event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
-                    target.setData((target.getData() == plugin.maxDPMetadata + 1) ? (byte) 0 : plugin.maxDPMetadata);
-                }
+            if (fixBlock(target)) {
+                plugin.getLogger().warning(event.getPlayer().getName() + " : fixed DoublePlant block " + target.getLocation().toString());
+                if (!plugin.isBlockClickedFixMessageSilent)
+                    event.getPlayer().sendMessage("[WARN] fixed DoublePlant block.");
             }
         }
     }
